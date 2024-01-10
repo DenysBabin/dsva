@@ -19,8 +19,8 @@ public class Node implements Runnable {
     private String name;
 
     private List<Address> knownAddresses = new ArrayList<>();
-    private MessageInterface messageReceiver;
-    private NodeInterface nodeReceiver;
+//    private MessageInterface messageReceiver;
+//    private NodeInterface nodeReceiver;
 
     public static void main(String[] args) {
         System.out.println("Start here");
@@ -71,8 +71,10 @@ public class Node implements Runnable {
 
             myAddress = new Address(myIP, myPort);
             communicationHub = new CommunicationHub(myAddress);
-            messageReceiver = startMessageReceiver();
-            nodeReceiver = startNodeRMI();
+//            messageReceiver = startMessageReceiver();
+//            nodeReceiver = startNodeRMI();
+
+            startReceivers();
 
             if (Objects.nonNull(otherNodeIP) && Objects.nonNull(otherNodePort)) {
                 try {
@@ -105,42 +107,33 @@ public class Node implements Runnable {
         }
     }
 
-    private MessageInterface startMessageReceiver() {
+    private MessageInterface startReceivers() {
         System.setProperty("java.rmi.server.hostname", myAddress.ip);
 
         MessageInterface msgReceiver = null;
+        NodeInterface nodeReceiver = null;
+
+
         try {
             msgReceiver = new MessageReceiver(this);
+            nodeReceiver = new NodeReceiver(this);
 
-            MessageInterface skeleton = (MessageInterface) UnicastRemoteObject.exportObject(msgReceiver, 40000+myAddress.port);
+
+            MessageInterface msgSkeleton = (MessageInterface) UnicastRemoteObject.exportObject(msgReceiver, 40000+myAddress.port);
+            NodeInterface nodeSkeleton = (NodeInterface) UnicastRemoteObject.exportObject(nodeReceiver, 30000+myAddress.port);
+
 
             Registry registry = LocateRegistry.createRegistry(myAddress.port);
-            registry.rebind(MESSAGE_SERVICE_NAME, skeleton);
+
+            registry.rebind(SERVICE_NAME, nodeSkeleton);
+            registry.rebind(MESSAGE_SERVICE_NAME, msgSkeleton);
+
         } catch (Exception e) {
             System.err.println("Message listener - something is wrong: " + e.getMessage());
         }
         System.out.println("Message listener is started ...");
 
         return msgReceiver;
-    }
-
-    private NodeInterface startNodeRMI() {
-        System.setProperty("java.rmi.server.hostname", myAddress.ip);
-
-        NodeInterface nodeReceiver = null;
-        try {
-            nodeReceiver = new NodeReceiver(this);
-
-            NodeInterface skeleton = (NodeInterface) UnicastRemoteObject.exportObject(nodeReceiver, 50000+myAddress.port);
-
-            Registry registry = LocateRegistry.createRegistry(50000 + myAddress.port);
-            registry.rebind(SERVICE_NAME, skeleton);
-        } catch (Exception e) {
-            System.err.println("Node listener - something is wrong: " + e.getMessage());
-        }
-        System.out.println("Node listener is started ...");
-
-        return nodeReceiver;
     }
 
     private static String getMyIP() throws SocketException {
