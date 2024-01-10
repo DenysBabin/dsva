@@ -11,4 +11,8 @@ public class NodeReceiver implements NodeInterface {
         this.myNode = myNode;
     }
 
+    @Override
+    public void receiveRequest(Address myAddress, Request request) throws RemoteException {
+        System.out.println("Эврика !!!");
+    }
 }

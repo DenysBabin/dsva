@@ -17,6 +17,12 @@ public class Node implements Runnable {
     private int otherNodePort = -1;
     private int myPort = -1;
     private String name;
+    private List<Address> pendingReplies = new ArrayList<>();
+    private int logicalClock = 0;
+    private PriorityQueue<Request> requestQueue = new PriorityQueue<>();
+
+
+
 
     private List<Address> knownAddresses = new ArrayList<>();
 //    private MessageInterface messageReceiver;
@@ -66,7 +72,6 @@ public class Node implements Runnable {
         try {
             String myIP = getMyIP();
 
-
             System.out.println(myIP);
 
             myAddress = new Address(myIP, myPort);
@@ -79,6 +84,7 @@ public class Node implements Runnable {
             if (Objects.nonNull(otherNodeIP) && Objects.nonNull(otherNodePort)) {
                 try {
                     Address address = new Address(otherNodeIP, otherNodePort);
+                    // messageReceiver
                     MessageInterface tmpNode = communicationHub.getMessageReceiverProxy(address);
                     System.out.println(tmpNode);
                     knownAddresses = tmpNode.getKnownAddresses();
@@ -93,6 +99,64 @@ public class Node implements Runnable {
             e.printStackTrace();
             System.exit(1);
         }
+
+        try (Scanner scanner = new Scanner(System.in)) {
+            while (true) {
+                System.out.println("Write a message: ");
+                String input = scanner.nextLine();
+
+                if (input.equals("exit")) {
+                    System.out.println("Exiting...");
+                    break; // Выход из цикла и завершение программы
+                } else {
+                    // Критическая ситуация
+                    sendCriticalSectionRequest();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private synchronized void sendCriticalSectionRequest() {
+        try {
+            System.out.println(getMyAddress() + " is sending a request to enter the critical section.");
+
+            pendingReplies.clear();
+            logicalClock++;
+            Request request = new Request(logicalClock, getMyAddress());
+            requestQueue.add(request);
+
+            System.out.println("Test");
+
+
+            for (Address nodeAddress : knownAddresses) {
+                System.out.println("nodeAddress " + nodeAddress);
+                if (!nodeAddress.equals(myAddress)) {
+                    System.out.println("Not you " + nodeAddress);
+
+                    // Node Receiver
+                    NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
+                    System.out.println("tmpNode " + tmpNode);
+
+                    try {
+                        tmpNode.receiveRequest(myAddress ,request);
+                    } catch (RemoteException e) {
+                        System.err.println("RemoteException occurred: " + e.getMessage());
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        System.err.println("General Exception occurred: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                    pendingReplies.add(nodeAddress);
+
+
+                }
+            }
+        } catch (RemoteException e) {
+            System.err.println("Error sending critical section request: " + e.getMessage());
+        }
+
     }
 
     private void join() {
