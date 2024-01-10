@@ -237,6 +237,36 @@ public class Node implements Runnable {
     public Address getMyAddress() {
         return myAddress;
     }
+
+
+    public int getLogicalClock() {
+        return logicalClock;
+    }
+
+    public void setLogicalClock(int logicalClock) {
+        this.logicalClock = logicalClock;
+    }
+
+    public PriorityQueue<Request> getRequestQueue() {
+        return requestQueue;
+    }
+
+    public void setRequestQueue(PriorityQueue<Request> requestQueue) {
+        this.requestQueue = requestQueue;
+    }
+
+    public void sendReply(Address nodeAddress) {
+        System.out.println(name + " is sending a reply to " + nodeAddress);
+
+        try {
+            // Message receiver ??
+            NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
+//            node.receiveReply(nodeAddress);
+            System.out.println(name + " sent a reply to " + nodeAddress);
+        } catch (RemoteException e) {
+            System.out.println("Error sending reply to " + nodeAddress + ": " + e.getMessage());
+        }
+    }
 }
 
 
