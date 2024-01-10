@@ -26,16 +26,16 @@ public class CommunicationHub {
         }
     }
 
-    public MessageInterface getMessageReceiverProxy(Address address) throws RemoteException {
-        if (address.compareTo(myAddress) == 0 ) return null;
-        else {
-            try {
-                Registry registry = LocateRegistry.getRegistry(address.ip, address.port);
-                // Используйте уникальное имя для поиска MessageReceiver
-                return (MessageInterface) registry.lookup(Node.MESSAGE_SERVICE_NAME);
-            } catch (NotBoundException nbe) {
-                throw new RemoteException(nbe.getMessage());
-            }
-        }
-    }
+//    public MessageInterface getMessageReceiverProxy(Address address) throws RemoteException {
+//        if (address.compareTo(myAddress) == 0 ) return null;
+//        else {
+//            try {
+//                Registry registry = LocateRegistry.getRegistry(address.ip, address.port);
+//                // Используйте уникальное имя для поиска MessageReceiver
+//                return (MessageInterface) registry.lookup(Node.MESSAGE_SERVICE_NAME);
+//            } catch (NotBoundException nbe) {
+//                throw new RemoteException(nbe.getMessage());
+//            }
+//        }
+//    }
 }
