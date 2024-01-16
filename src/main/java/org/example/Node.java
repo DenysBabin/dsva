@@ -25,6 +25,8 @@ public class Node implements Runnable {
     boolean isHaveQueue;
     private ExecutorService executor = Executors.newCachedThreadPool();
     public String input = "";
+    public Map<Integer, List<Address>> pendingRepliesMap = new HashMap<>();
+
 
 
 
@@ -125,17 +127,10 @@ public class Node implements Runnable {
         }
     }
 
-    public void doRequest() throws RemoteException {
+    public void doRequest(Request firsRequest) throws RemoteException {
 //        System.out.println("this.getRequestQueue() : " + this.getRequestQueue());
-        Request firsRequest = this.getRequestQueue().peek();
 
-        assert firsRequest != null;
-        for (Address nodeAddress : knownAddresses) {
-            if (!nodeAddress.equals(myAddress)) {
-                pendingReplies.add(nodeAddress);
-            }
-        }
-
+        int checkPand = 0;
 
         if (!firsRequest.isStatus() && knownAddresses.isEmpty()) {
             System.out.println("You send message " + this.input);
@@ -150,7 +145,17 @@ public class Node implements Runnable {
 
                 if (firsRequest.getType().equals("REQUEST") && !firsRequest.isStatus()) {
                     try {
+
+                        if (checkPand == 0) {
+                            List<Address> pendingRepliesForRequest = new ArrayList<>(knownAddresses);
+                            pendingRepliesForRequest.remove(myAddress);
+                            pendingRepliesMap.put(this.getLogicalClock(), pendingRepliesForRequest);
+                            System.out.println("===pendingRepliesMap: " + pendingRepliesMap);
+                        }
                         this.setLogicalClock(this.getLogicalClock() + 1);
+
+
+                        checkPand++;
 
                         System.out.println("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
 
@@ -163,26 +168,27 @@ public class Node implements Runnable {
                         System.err.println("General Exception occurred: " + e.getMessage());
                         e.printStackTrace();
                     }
-                } else if (firsRequest.getType().equals("REPLY") && !firsRequest.isStatus() ) {
-                    this.setLogicalClock(this.getLogicalClock() + 1);
-                    System.out.println("< ============= Request with Type REPLY started ============= > Time: " + this.getLogicalClock());
-                    firsRequest.setReceiveLamportClock(this.getLogicalClock());
-
-                    this.sendReply(firsRequest);
-                } else if (firsRequest.getType().equals("RELEASE") && !firsRequest.isStatus()) {
-                    this.setLogicalClock(this.getLogicalClock() + 1);
-                    System.out.println("< ============= Request with Type RELEASE started ============= > Time: " + this.getLogicalClock());
-
-                    this.sendMessage(nodeAddress);
                 }
             }
+        }
 
+        if (firsRequest.getType().equals("REPLY") && !firsRequest.isStatus() ) {
+            this.setLogicalClock(this.getLogicalClock() + 1);
+            System.out.println("< ============= Request with Type REPLY started ============= > Time: " + this.getLogicalClock());
+            firsRequest.setReceiveLamportClock(this.getLogicalClock());
+
+            this.sendReply(firsRequest);
+        } else if (firsRequest.getType().equals("RELEASE") && !firsRequest.isStatus()) {
+            this.setLogicalClock(this.getLogicalClock() + 1);
+            System.out.println("< ============= Request with Type RELEASE started ============= > Time: " + this.getLogicalClock());
+
+            this.sendMessage();
         }
         firsRequest.setStatus(true);
         isHaveQueue = this.getRequestQueue().isEmpty();
 
         if (!isHaveQueue && !firsRequest.isStatus() && knownAddresses.size() >= 2) {
-            doRequest();
+            doRequest(firsRequest);
         }
     }
 
@@ -193,7 +199,7 @@ public class Node implements Runnable {
         requestQueue.add(request);
 
         if (!this.requestQueue.isEmpty()) {
-            doRequest();
+            doRequest(request);
         }
 
     }
@@ -296,10 +302,16 @@ public class Node implements Runnable {
         }
     }
 
-    public void sendMessage(Address address) throws RemoteException {
-        System.out.println("User: " + name + " is send a MESSAGE to user in Address: " + address);
-        NodeInterface node = communicationHub.getRMIProxy(address);
-        node.receiveMessage(this.input, this.getLogicalClock(), this.name);
+    public void sendMessage() throws RemoteException {
+
+        for (Address nodeAddress : knownAddresses) {
+            if (!nodeAddress.equals(myAddress)) {
+                System.out.println("User: " + name + " is send a MESSAGE to user in Address: " + nodeAddress);
+                NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
+                node.receiveMessage(this.input, this.getLogicalClock(), this.name);
+            }
+        }
+
     }
 
     public List<Address> getPendingReplies() {

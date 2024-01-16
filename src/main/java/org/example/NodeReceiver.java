@@ -14,23 +14,24 @@ public class NodeReceiver implements NodeInterface {
 
     @Override
     public void receiveRequest(Address myAddress, Request request, int nodeLogicalClock) throws RemoteException {
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException ie) {
-//            Thread.currentThread().interrupt(); // Восстановление прерванного статуса
-//            return; // Опционально: Выход из метода, если поток был прерван
-//        }
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt(); // Восстановление прерванного статуса
+            return; // Опционально: Выход из метода, если поток был прерван
+        }
+
         myNode.setLogicalClock(Math.max(myNode.getLogicalClock(), nodeLogicalClock) + 1);
 
         System.out.println("< ================= Обработка Запроса ==============> Time: " + myNode.getLogicalClock());
 
         PriorityQueue<Request> requestQueue = myNode.getRequestQueue();
-        Request newRequest = new Request(myAddress, "REPLY", false, myNode.getLogicalClock(), myNode.getLogicalClock());
+        Request newRequest = new Request(myAddress, "REPLY", false, request.getCreatedLamportClock(), myNode.getLogicalClock());
         requestQueue.add(newRequest);
         System.out.println("myNode: " + myNode.getMyAddress() + " has requestQueue: " + myNode.getRequestQueue());
 
         if ( !myNode.getRequestQueue().isEmpty()) {
-            myNode.doRequest();
+            myNode.doRequest(newRequest);
         }
     }
 
@@ -60,26 +61,19 @@ public class NodeReceiver implements NodeInterface {
 
         System.out.println("<===================== RECEIVE REPLY ===================> Time: " + myNode.getLogicalClock());
         System.out.println("receiveReply start for request " + request);
+        List<Address> pendingReplies = myNode.pendingRepliesMap.get(request.getCreatedLamportClock());
+        System.out.println("-----------------1  getCreatedLamportClock" + request.getCreatedLamportClock());
 
-//        System.out.println("check Time:");
-//        System.out.println("request.getCreatedLamportClock(): Time: " + request.getCreatedLamportClock());
-//        System.out.println("request.getCreatedLamportClock(): Time: " + request.getCreatedLamportClock());
-//        System.out.println("nodeLogicalClock: Time: " + nodeLogicalClock);
-
-//        System.out.println("My pending before remove is: " + myNode.getPendingReplies());
-
-//        System.out.println("Data:  getPort: " + nodeAddress.getPort() + " myNode.getMyAddress().getIp(): " + nodeAddress.getIp() + " Math.max(myNode.getLogicalClock(), nodeLogicalClock) " + Math.max(request.getCreatedLamportClock(), nodeLogicalClock) + "  myNode.getLogicalClock(): " +  myNode.getLogicalClock() );
-
-
-        myNode.getPendingReplies().removeIf(address -> Objects.equals(nodeAddress.getPort(), address.getPort())
+        System.out.println("-----------------1 PENDING REPLIES: " + pendingReplies);
+        pendingReplies.removeIf(address -> Objects.equals(nodeAddress.getPort(), address.getPort())
                 && Objects.equals(nodeAddress.getIp(), address.getIp())
                 && request.getCreatedLamportClock() <= Math.max(request.getCreatedLamportClock(), nodeLogicalClock));
 
 
-        System.out.println("PENDING REPLIES: " + myNode.getPendingReplies());
+        System.out.println("-----------------2 PENDING REPLIES: " + pendingReplies);
         System.out.println("REQUESTS QUEUE: " + myNode.getRequestQueue());
 
-        if (myNode.getPendingReplies().isEmpty() && !myNode.getRequestQueue().isEmpty()) {
+        if (pendingReplies.isEmpty() && !myNode.getRequestQueue().isEmpty()) {
 
             myNode.getRequestQueue().poll();
             myNode.setRequestQueue(myNode.getRequestQueue());
@@ -89,10 +83,10 @@ public class NodeReceiver implements NodeInterface {
             myNode.setRequestQueue(myNode.getRequestQueue());
             myNode.setHaveQueue(false);
             if (!myNode.getRequestQueue().isEmpty()) {
-                myNode.doRequest();
+                myNode.doRequest(newRequest);
             }
-        } else if (!myNode.getPendingReplies().isEmpty()) {
-            myNode.getPendingReplies().remove(0);
+        } else if (!pendingReplies.isEmpty()) {
+//            myNode.getPendingReplies().remove(0);
         }
 
     }
@@ -101,5 +95,6 @@ public class NodeReceiver implements NodeInterface {
     public void receiveMessage(String msg, int lock, String name) throws RemoteException {
         System.out.println("User: " + name + " sent Message: " + msg + " Time: " + lock);
         myNode.getRequestQueue().poll();
+        System.out.println("======= Queue: " + myNode.getRequestQueue());
     }
 }
