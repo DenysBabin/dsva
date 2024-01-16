@@ -6,6 +6,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 //ADDING NAME TO ARGS
 public class Node implements Runnable {
@@ -20,6 +22,10 @@ public class Node implements Runnable {
     private List<Address> pendingReplies = new ArrayList<>();
     private int logicalClock = 0;
     private PriorityQueue<Request> requestQueue = new PriorityQueue<>();
+    boolean isHaveQueue;
+    private ExecutorService executor = Executors.newCachedThreadPool();
+    public String input = "";
+
 
 
 
@@ -39,6 +45,7 @@ public class Node implements Runnable {
 
     public Node(String[] args, String name) {
         this.name = name;
+        this.isHaveQueue = false;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-ip") && i + 1 < args.length) {
@@ -76,8 +83,6 @@ public class Node implements Runnable {
 
             myAddress = new Address(myIP, myPort);
             communicationHub = new CommunicationHub(myAddress);
-//            messageReceiver = startMessageReceiver();
-//            nodeReceiver = startNodeRMI();
 
             startReceivers();
 
@@ -102,8 +107,8 @@ public class Node implements Runnable {
 
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {
-                System.out.println("Write a message: ");
                 String input = scanner.nextLine();
+                this.input = input;
 
                 if (input.equals("exit")) {
                     System.out.println("Exiting...");
@@ -111,36 +116,46 @@ public class Node implements Runnable {
                 } else {
                     // Критическая ситуация
                     sendCriticalSectionRequest();
+                    this.input = "";
                 }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private synchronized void sendCriticalSectionRequest() {
-        try {
-            System.out.println(getMyAddress() + " is sending a request to enter the critical section.");
+    public void doRequest() throws RemoteException {
+//        System.out.println("this.getRequestQueue() : " + this.getRequestQueue());
+        Request firsRequest = this.getRequestQueue().peek();
 
-            pendingReplies.clear();
-            logicalClock++;
-            Request request = new Request(logicalClock, getMyAddress());
-            requestQueue.add(request);
+        assert firsRequest != null;
+        for (Address nodeAddress : knownAddresses) {
+            if (!nodeAddress.equals(myAddress)) {
+                pendingReplies.add(nodeAddress);
+            }
+        }
 
-            System.out.println("Test");
+
+        if (!firsRequest.isStatus() && knownAddresses.isEmpty()) {
+            System.out.println("You send message " + this.input);
+            this.requestQueue.poll();
+        }
+
+        for (Address nodeAddress : knownAddresses) {
+            if (!nodeAddress.equals(myAddress)) {
+                NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
 
 
-            for (Address nodeAddress : knownAddresses) {
-                System.out.println("nodeAddress " + nodeAddress);
-                if (!nodeAddress.equals(myAddress)) {
-                    System.out.println("Not you " + nodeAddress);
 
-                    // Node Receiver
-                    NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
-                    System.out.println("tmpNode " + tmpNode);
-
+                if (firsRequest.getType().equals("REQUEST") && !firsRequest.isStatus()) {
                     try {
-                        tmpNode.receiveRequest(myAddress ,request);
+                        this.setLogicalClock(this.getLogicalClock() + 1);
+
+                        System.out.println("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
+
+                        tmpNode.receiveRequest(myAddress, firsRequest, this.getLogicalClock());
+
                     } catch (RemoteException e) {
                         System.err.println("RemoteException occurred: " + e.getMessage());
                         e.printStackTrace();
@@ -148,13 +163,37 @@ public class Node implements Runnable {
                         System.err.println("General Exception occurred: " + e.getMessage());
                         e.printStackTrace();
                     }
-                    pendingReplies.add(nodeAddress);
+                } else if (firsRequest.getType().equals("REPLY") && !firsRequest.isStatus() ) {
+                    this.setLogicalClock(this.getLogicalClock() + 1);
+                    System.out.println("< ============= Request with Type REPLY started ============= > Time: " + this.getLogicalClock());
+                    firsRequest.setReceiveLamportClock(this.getLogicalClock());
 
+                    this.sendReply(firsRequest);
+                } else if (firsRequest.getType().equals("RELEASE") && !firsRequest.isStatus()) {
+                    this.setLogicalClock(this.getLogicalClock() + 1);
+                    System.out.println("< ============= Request with Type RELEASE started ============= > Time: " + this.getLogicalClock());
 
+                    this.sendMessage(nodeAddress);
                 }
             }
-        } catch (RemoteException e) {
-            System.err.println("Error sending critical section request: " + e.getMessage());
+
+        }
+        firsRequest.setStatus(true);
+        isHaveQueue = this.getRequestQueue().isEmpty();
+
+        if (!isHaveQueue && !firsRequest.isStatus() && knownAddresses.size() >= 2) {
+            doRequest();
+        }
+    }
+
+
+    private void sendCriticalSectionRequest() throws RemoteException {
+        System.out.println("======= Start msg =====");
+        Request request = new Request(getMyAddress(), "REQUEST", false, this.getLogicalClock(), this.getLogicalClock());
+        requestQueue.add(request);
+
+        if (!this.requestQueue.isEmpty()) {
+            doRequest();
         }
 
     }
@@ -174,24 +213,12 @@ public class Node implements Runnable {
     private NodeInterface startReceivers() {
         System.setProperty("java.rmi.server.hostname", myAddress.ip);
 
-//        MessageInterface msgReceiver = null;
         NodeInterface nodeReceiver = null;
-
-
         try {
-//            msgReceiver = new MessageReceiver(this);
             nodeReceiver = new NodeReceiver(this);
-
-
-//            MessageInterface msgSkeleton = (MessageInterface) UnicastRemoteObject.exportObject(msgReceiver, 40000+myAddress.port);
             NodeInterface nodeSkeleton = (NodeInterface) UnicastRemoteObject.exportObject(nodeReceiver, 40000+myAddress.port);
-
-
             Registry registry = LocateRegistry.createRegistry(myAddress.port);
-
             registry.rebind(SERVICE_NAME, nodeSkeleton);
-//            registry.rebind(MESSAGE_SERVICE_NAME, msgSkeleton);
-
         } catch (Exception e) {
             System.err.println("Message listener - something is wrong: " + e.getMessage());
         }
@@ -255,17 +282,40 @@ public class Node implements Runnable {
         this.requestQueue = requestQueue;
     }
 
-    public void sendReply(Address nodeAddress) {
-        System.out.println(name + " is sending a reply to " + nodeAddress);
+    public void sendReply(Request request) {
+//        this.setLogicalClock(this.getLogicalClock()+1);
+        System.out.println("<==================== SENDING REPLY ====================> Time: " + this.getLogicalClock());
+        System.out.println("User: " + name + " is sending a reply to " + request.getAddress());
 
         try {
-            // Message receiver ??
-            NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
-//            node.receiveReply(nodeAddress);
-            System.out.println(name + " sent a reply to " + nodeAddress);
+            NodeInterface node = communicationHub.getRMIProxy(request.getAddress());
+            node.receiveReply(request, this.getLogicalClock(), myAddress);
+
         } catch (RemoteException e) {
-            System.out.println("Error sending reply to " + nodeAddress + ": " + e.getMessage());
+            System.out.println("Error sending reply to " + request.getAddress() + ": " + e.getMessage());
         }
+    }
+
+    public void sendMessage(Address address) throws RemoteException {
+        System.out.println("User: " + name + " is send a MESSAGE to user in Address: " + address);
+        NodeInterface node = communicationHub.getRMIProxy(address);
+        node.receiveMessage(this.input, this.getLogicalClock(), this.name);
+    }
+
+    public List<Address> getPendingReplies() {
+        return pendingReplies;
+    }
+
+    public void setPendingReplies(List<Address> pendingReplies) {
+        this.pendingReplies = pendingReplies;
+    }
+
+    public boolean isHaveQueue() {
+        return isHaveQueue;
+    }
+
+    public void setHaveQueue(boolean haveQueue) {
+        isHaveQueue = haveQueue;
     }
 }
 
