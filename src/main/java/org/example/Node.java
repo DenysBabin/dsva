@@ -12,6 +12,9 @@ import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import static org.example.LoggingToFile.LOGGERFILE;
+import static org.example.LoggingToFile.setupLogger;
+
 //ADDING NAME TO ARGS
 public class Node implements Runnable {
 
@@ -43,16 +46,16 @@ public class Node implements Runnable {
 //    private NodeInterface nodeReceiver;
 
     public static void main(String[] args) {
+        setupLogger();
+
         try {
 //            LogManager.getLogManager().readConfiguration(new FileInputStream("src/main/java/org/example/logging.properties"));
 
         } catch (Exception e) {
+            LOGGERFILE.info("ERROR: " + e);
             e.printStackTrace();
             System.exit(1);
         }
-        System.out.println("Start here");
-        logger.info("Start here");
-
         Node node = new Node(args, "name");
         node.run();
     }
@@ -71,6 +74,7 @@ public class Node implements Runnable {
                 try {
                     otherNodePort = Integer.parseInt(args[++i]);
                 } catch (NumberFormatException e) {
+                    LOGGERFILE.info("ERROR: " + e);
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -80,6 +84,8 @@ public class Node implements Runnable {
                 try {
                     myPort = Integer.parseInt(args[++i]); // Установка моего порта
                 } catch (NumberFormatException e) {
+                    LOGGERFILE.info("ERROR: " + e);
+
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -107,17 +113,21 @@ public class Node implements Runnable {
                 try {
                     Address address = new Address(otherNodeIP, otherNodePort);
                     // messageReceiver
+
                     NodeInterface tmpNode = communicationHub.getRMIProxy(address);
                     System.out.println(tmpNode);
                     knownAddresses = tmpNode.getKnownAddresses();
                     knownAddresses.add(address);
                     join();
                 } catch (RemoteException e) {
+                    LOGGERFILE.info("ERROR: " + e);
+
                     e.printStackTrace();
                     System.exit(1);
                 }
             }
         } catch (SocketException e) {
+            LOGGERFILE.info("ERROR: " + e);
             e.printStackTrace();
             System.exit(1);
         }
@@ -128,7 +138,8 @@ public class Node implements Runnable {
                 this.input = input;
 
                 if (input.equals("exit")) {
-                    System.out.println("Exiting...");
+                    LOGGERFILE.info("Exiting...");
+
                     handleExit();
                     break; // Выход из цикла и завершение программы
                 } else {
@@ -151,68 +162,93 @@ public class Node implements Runnable {
                     NodeInterface node = communicationHub.getRMIProxy(address);
                     node.processExit(exitRequest, this.getLogicalClock());
                 } catch (RemoteException e) {
-                    System.err.println("Error while notifying exit: " + e.getMessage());
+                    removeUnavailableNode(address);
+
+                    LOGGERFILE.info("Error while notifying exit: " + e.getMessage());
                 }
             }
         }
-        System.out.println("Exiting chat...");
+        LOGGERFILE.info("Exiting chat...");
         System.exit(1);
+    }
+
+    private void removeUnavailableNode(Address address) {
+        knownAddresses.remove(address);
+
+        for (Address nodeAddress : knownAddresses) {
+            if (!address.equals(myAddress)) {
+                try {
+                    NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
+                    node.deleteFormPendingsList(address);
+                } catch (RemoteException e) {
+                    LOGGERFILE.info("Error while notifying exit: " + e.getMessage());
+                }
+            }
+        }
+        LOGGERFILE.info("Node at " + address + " is unavailable and removed from known addresses.");
     }
 
     public void doRequest(Request firsRequest) throws RemoteException {
 //        System.out.println("this.getRequestQueue() : " + this.getRequestQueue());
+        try {
+            int checkPand = 0;
 
-        int checkPand = 0;
+            if (!firsRequest.isStatus() && knownAddresses.isEmpty()) {
+                System.out.println("You send message " + this.input);
+                this.requestQueue.poll();
+            }
 
-        if (!firsRequest.isStatus() && knownAddresses.isEmpty()) {
-            System.out.println("You send message " + this.input);
-            this.requestQueue.poll();
-        }
+            List<Address> tempKnownAddresses = knownAddresses;
 
-        for (Address nodeAddress : knownAddresses) {
-            if (!nodeAddress.equals(myAddress)) {
-                NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
+            for (Address nodeAddress : tempKnownAddresses) {
+                if (!nodeAddress.equals(myAddress)) {
+
+                        NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
 
 
+                    if (firsRequest.getType().equals("REQUEST") && !firsRequest.isStatus()) {
+                        try {
 
-                if (firsRequest.getType().equals("REQUEST") && !firsRequest.isStatus()) {
-                    try {
+                            if (checkPand == 0) {
+                                List<Address> pendingRepliesForRequest = new ArrayList<>(tempKnownAddresses);
+                                pendingRepliesForRequest.remove(myAddress);
+                                pendingRepliesMap.put(this.getLogicalClock(), pendingRepliesForRequest);
+                                LOGGERFILE.info("===pendingRepliesMap: " + pendingRepliesMap);
+                            }
+                            this.setLogicalClock(this.getLogicalClock() + 1);
+                            checkPand++;
+                            LOGGERFILE.info("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
 
-                        if (checkPand == 0) {
-                            List<Address> pendingRepliesForRequest = new ArrayList<>(knownAddresses);
-                            pendingRepliesForRequest.remove(myAddress);
-                            pendingRepliesMap.put(this.getLogicalClock(), pendingRepliesForRequest);
-                            System.out.println("===pendingRepliesMap: " + pendingRepliesMap);
+                            tmpNode.receiveRequest(myAddress, firsRequest, this.getLogicalClock());
+
+                        } catch (RemoteException e) {
+                            System.err.println("RemoteException occurred: " + e.getMessage());
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            System.err.println("General Exception occurred: " + e.getMessage());
+                            e.printStackTrace();
                         }
-                        this.setLogicalClock(this.getLogicalClock() + 1);
-
-
-                        checkPand++;
-
-                        System.out.println("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
-
-                        tmpNode.receiveRequest(myAddress, firsRequest, this.getLogicalClock());
-
-                    } catch (RemoteException e) {
-                        System.err.println("RemoteException occurred: " + e.getMessage());
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        System.err.println("General Exception occurred: " + e.getMessage());
-                        e.printStackTrace();
                     }
+
+
+
+
                 }
             }
+        } catch (RemoteException e) {
+            removeUnavailableNode(firsRequest.getAddress());
         }
 
         if (firsRequest.getType().equals("REPLY") && !firsRequest.isStatus() ) {
             this.setLogicalClock(this.getLogicalClock() + 1);
-            System.out.println("< ============= Request with Type REPLY started ============= > Time: " + this.getLogicalClock());
+            LOGGERFILE.info("< ============= Request with Type REPLY started ============= > Time: " + this.getLogicalClock());
+
             firsRequest.setReceiveLamportClock(this.getLogicalClock());
 
             this.sendReply(firsRequest);
         } else if (firsRequest.getType().equals("RELEASE") && !firsRequest.isStatus()) {
             this.setLogicalClock(this.getLogicalClock() + 1);
-            System.out.println("< ============= Request with Type RELEASE started ============= > Time: " + this.getLogicalClock());
+            LOGGERFILE.info("< ============= Request with Type RELEASE started ============= > Time: " + this.getLogicalClock());
 
             this.sendMessage();
         }
@@ -226,7 +262,7 @@ public class Node implements Runnable {
 
 
     private void sendCriticalSectionRequest() throws RemoteException {
-        System.out.println("======= Start msg =====");
+        LOGGERFILE.info("======= Start msg =====");
         Request request = new Request(getMyAddress(), "REQUEST", false, this.getLogicalClock(), this.getLogicalClock());
         requestQueue.add(request);
 
@@ -243,7 +279,9 @@ public class Node implements Runnable {
                 NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
                 tmpNode.proccessJoin(myAddress);
             } catch (RemoteException e) {
-                throw new RuntimeException(e);
+                removeUnavailableNode(nodeAddress);
+
+//                throw new RuntimeException(e);
             }
         }
     }
@@ -258,9 +296,9 @@ public class Node implements Runnable {
             Registry registry = LocateRegistry.createRegistry(myAddress.port);
             registry.rebind(SERVICE_NAME, nodeSkeleton);
         } catch (Exception e) {
-            System.err.println("Message listener - something is wrong: " + e.getMessage());
+            LOGGERFILE.info("Message listener - something is wrong: " + e.getMessage());
         }
-        System.out.println("Message listener is started ...");
+        LOGGERFILE.info("Message listener is started ...");
 
         return nodeReceiver;
     }
@@ -322,15 +360,16 @@ public class Node implements Runnable {
 
     public void sendReply(Request request) {
 //        this.setLogicalClock(this.getLogicalClock()+1);
-        System.out.println("<==================== SENDING REPLY ====================> Time: " + this.getLogicalClock());
-        System.out.println("User: " + name + " is sending a reply to " + request.getAddress());
+        LOGGERFILE.info("<==================== SENDING REPLY ====================> Time: " + this.getLogicalClock());
+        LOGGERFILE.info("User: " + name + " is sending a reply to " + request.getAddress());
 
         try {
             NodeInterface node = communicationHub.getRMIProxy(request.getAddress());
             node.receiveReply(request, this.getLogicalClock(), myAddress);
 
         } catch (RemoteException e) {
-            System.out.println("Error sending reply to " + request.getAddress() + ": " + e.getMessage());
+            removeUnavailableNode(request.getAddress());
+            LOGGERFILE.info("Error sending reply to " + request.getAddress() + ": " + e.getMessage());
         }
     }
 
@@ -338,9 +377,14 @@ public class Node implements Runnable {
 
         for (Address nodeAddress : knownAddresses) {
             if (!nodeAddress.equals(myAddress)) {
-                System.out.println("User: " + name + " is send a MESSAGE to user in Address: " + nodeAddress);
-                NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
-                node.receiveMessage(this.input, this.getLogicalClock(), this.name);
+                LOGGERFILE.info("User: " + name + " is send a MESSAGE to user in Address: " + nodeAddress);
+                try {
+                    NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
+                    node.receiveMessage(this.input, this.getLogicalClock(), this.name);
+                } catch (RemoteException e) {
+                    removeUnavailableNode(nodeAddress);
+
+                }
             }
         }
 
@@ -364,10 +408,11 @@ public class Node implements Runnable {
 
     public void handleExitNotification(Request request, int logicalClock) {
         Address exitingAddress = request.getAddress();
-        System.out.println("My address: " + knownAddresses);
+        LOGGERFILE.info("My address: " + knownAddresses);
+
         knownAddresses.remove(exitingAddress);
-        System.out.println("User at " + exitingAddress + " has exited. Updating known addresses.");
-        System.out.println("My address: " + knownAddresses);
+        LOGGERFILE.info("User at " + exitingAddress + " has exited. Updating known addresses.");
+        LOGGERFILE.info("My address: " + knownAddresses);
     }
 }
 

@@ -17,4 +17,8 @@ public interface NodeInterface extends Remote {
 
     void processExit(Request request, int logicalClock) throws RemoteException;
 
+    void deleteFormPendingsList(Address nodeAddress) throws RemoteException;
+
+//    void deleteFormPendingsList(Address nodeAddress);
+
 }

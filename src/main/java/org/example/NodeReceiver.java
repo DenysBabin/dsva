@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.PriorityQueue;
 
+import static org.example.LoggingToFile.LOGGERFILE;
+
 public class NodeReceiver implements NodeInterface {
     private Node myNode = null;
 
@@ -15,20 +17,19 @@ public class NodeReceiver implements NodeInterface {
     @Override
     public void receiveRequest(Address myAddress, Request request, int nodeLogicalClock) throws RemoteException {
         try {
-            Thread.sleep(1);
+            Thread.sleep(5000);
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
             return;
         }
 
         myNode.setLogicalClock(Math.max(myNode.getLogicalClock(), nodeLogicalClock) + 1);
-
-        System.out.println("< ================= Обработка Запроса ==============> Time: " + myNode.getLogicalClock());
+        LOGGERFILE.info("< ================= Обработка Запроса ==============> Time: " + myNode.getLogicalClock());
 
         PriorityQueue<Request> requestQueue = myNode.getRequestQueue();
         Request newRequest = new Request(myAddress, "REPLY", false, request.getCreatedLamportClock(), myNode.getLogicalClock());
         requestQueue.add(newRequest);
-        System.out.println("myNode: " + myNode.getMyAddress() + " has requestQueue: " + myNode.getRequestQueue());
+        LOGGERFILE.info("myNode: " + myNode.getMyAddress() + " has requestQueue: " + myNode.getRequestQueue());
 
         if ( !myNode.getRequestQueue().isEmpty()) {
             myNode.doRequest(newRequest);
@@ -37,15 +38,16 @@ public class NodeReceiver implements NodeInterface {
 
     @Override
     public void proccessJoin(Address addr) throws RemoteException {
-        System.out.println("JOIN request was called from IP " + addr.toString());
+        LOGGERFILE.info("JOIN request was called from IP " + addr.toString());
         if (addr.compareTo(myNode.getMyAddress()) == 0) {
-            System.out.println("It's my IP, comething went grond, but it'snot critical thing");
+            LOGGERFILE.info("It's my IP, comething went grond, but it'snot critical thing");
         } else {
-            System.out.println("Some user join chat!");
+            LOGGERFILE.info("Some user join chat!");
             List<Address> tempKnownAddresses = myNode.getKnownAddresses();
             tempKnownAddresses.add(addr);
             myNode.setKnownAddresses(tempKnownAddresses);
-            System.out.println("Adding new user was successfully completed!");
+
+            LOGGERFILE.info("Adding new user was successfully completed!");
         }
     }
 
@@ -59,19 +61,18 @@ public class NodeReceiver implements NodeInterface {
 
         myNode.setLogicalClock(Math.max(myNode.getLogicalClock(), nodeLogicalClock) + 1);
 
-        System.out.println("<===================== RECEIVE REPLY ===================> Time: " + myNode.getLogicalClock());
-        System.out.println("receiveReply start for request " + request);
+        LOGGERFILE.info("<===================== RECEIVE REPLY ===================> Time: " + myNode.getLogicalClock());
+        LOGGERFILE.info("receiveReply start for request " + request);
         List<Address> pendingReplies = myNode.pendingRepliesMap.get(request.getCreatedLamportClock());
-        System.out.println("getCreatedLamportClock" + request.getCreatedLamportClock());
+        LOGGERFILE.info("getCreatedLamportClock" + request.getCreatedLamportClock());
 
-        System.out.println("PENDING REPLIES: " + pendingReplies);
+        LOGGERFILE.info("PENDING REPLIES: " + pendingReplies);
         pendingReplies.removeIf(address -> Objects.equals(nodeAddress.getPort(), address.getPort())
                 && Objects.equals(nodeAddress.getIp(), address.getIp())
                 && request.getCreatedLamportClock() <= Math.max(request.getCreatedLamportClock(), nodeLogicalClock));
 
 
-        System.out.println("-----------------2 PENDING REPLIES: " + pendingReplies);
-        System.out.println("REQUESTS QUEUE: " + myNode.getRequestQueue());
+        LOGGERFILE.info("REQUESTS QUEUE: " + myNode.getRequestQueue());
 
         if (pendingReplies.isEmpty() && !myNode.getRequestQueue().isEmpty()) {
 
@@ -90,6 +91,7 @@ public class NodeReceiver implements NodeInterface {
 
     @Override
     public void receiveMessage(String msg, int lock, String name) throws RemoteException {
+        LOGGERFILE.info("User: " + name + " sent Message: " + msg + " Time: " + lock);
         System.out.println("User: " + name + " sent Message: " + msg + " Time: " + lock);
         myNode.getRequestQueue().poll();
     }
@@ -97,5 +99,13 @@ public class NodeReceiver implements NodeInterface {
     @Override
     public void processExit(Request request, int logicalClock) {
         myNode.handleExitNotification(request, logicalClock);
+    }
+
+    @Override
+    public void deleteFormPendingsList(Address nodeAddress) {
+        for (List<Address> pendingReplies : myNode.pendingRepliesMap.values()) {
+            pendingReplies.removeIf(address -> Objects.equals(nodeAddress.getPort(), address.getPort())
+                    && Objects.equals(nodeAddress.getIp(), address.getIp()));
+        }
     }
 }
