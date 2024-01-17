@@ -1,6 +1,9 @@
 # DSV/DSVA
 Team: Babin Denys
 
+## Soubory
+1. Git repo
+2. Zkompilovaný zip babinden_ME_Lamport_Java.RMI_chat.zip
 ## Zadani
 V této práci jsem implementoval chatovací systém. Při práci jsem použil následující parametry:
 - Chat
