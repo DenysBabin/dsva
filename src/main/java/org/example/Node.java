@@ -237,7 +237,6 @@ public class Node implements Runnable {
                 }
             }
         } catch (RemoteException e) {
-            System.out.println("===== 4Error address: " + currentAddress);
 
             removeUnavailableNode(currentAddress);
         }
@@ -284,7 +283,6 @@ public class Node implements Runnable {
                 NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
                 tmpNode.proccessJoin(myAddress);
             } catch (RemoteException e) {
-                System.out.println("===== 3Error address: " + nodeAddress);
 
                 removeUnavailableNode(nodeAddress);
 
@@ -377,8 +375,6 @@ public class Node implements Runnable {
             node.receiveReply(request, this.getLogicalClock(), myAddress);
 
         } catch (RemoteException e) {
-            System.out.println("=====2 Error address: " + request.getAddress());
-
             removeUnavailableNode(request.getAddress());
             LOGGERFILE.info("Error sending reply to " + request.getAddress() + ": " + e.getMessage());
         }
@@ -394,9 +390,7 @@ public class Node implements Runnable {
                 NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
                 node.receiveMessage(this.input, this.getLogicalClock(), this.name);
             } catch (RemoteException e) {
-                System.out.println("===== Error address: " + nodeAddress);
                 removeUnavailableNode(nodeAddress);
-
             }
         }
         System.out.println("User: " + this.name + " sent Message: " + this.input + " Time: " + this.getLogicalClock());
