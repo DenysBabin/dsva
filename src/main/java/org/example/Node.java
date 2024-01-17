@@ -1,5 +1,6 @@
 package org.example;
 
+import java.io.FileInputStream;
 import java.net.*;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -8,6 +9,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 //ADDING NAME TO ARGS
 public class Node implements Runnable {
@@ -33,11 +36,23 @@ public class Node implements Runnable {
 
 
     private List<Address> knownAddresses = new ArrayList<>();
+
+    private static final Logger logger = Logger.getLogger(Node.class.getName());
+
 //    private MessageInterface messageReceiver;
 //    private NodeInterface nodeReceiver;
 
     public static void main(String[] args) {
+        try {
+//            LogManager.getLogManager().readConfiguration(new FileInputStream("src/main/java/org/example/logging.properties"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         System.out.println("Start here");
+        logger.info("Start here");
+
         Node node = new Node(args, "name");
         node.run();
     }
@@ -114,6 +129,7 @@ public class Node implements Runnable {
 
                 if (input.equals("exit")) {
                     System.out.println("Exiting...");
+                    handleExit();
                     break; // Выход из цикла и завершение программы
                 } else {
                     // Критическая ситуация
@@ -125,6 +141,22 @@ public class Node implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void handleExit() throws RemoteException {
+        Request exitRequest = new Request(getMyAddress(), "EXIT", false, this.getLogicalClock(), this.getLogicalClock());
+        for (Address address : knownAddresses) {
+            if (!address.equals(myAddress)) {
+                try {
+                    NodeInterface node = communicationHub.getRMIProxy(address);
+                    node.processExit(exitRequest, this.getLogicalClock());
+                } catch (RemoteException e) {
+                    System.err.println("Error while notifying exit: " + e.getMessage());
+                }
+            }
+        }
+        System.out.println("Exiting chat...");
+        System.exit(1);
     }
 
     public void doRequest(Request firsRequest) throws RemoteException {
@@ -328,6 +360,14 @@ public class Node implements Runnable {
 
     public void setHaveQueue(boolean haveQueue) {
         isHaveQueue = haveQueue;
+    }
+
+    public void handleExitNotification(Request request, int logicalClock) {
+        Address exitingAddress = request.getAddress();
+        System.out.println("My address: " + knownAddresses);
+        knownAddresses.remove(exitingAddress);
+        System.out.println("User at " + exitingAddress + " has exited. Updating known addresses.");
+        System.out.println("My address: " + knownAddresses);
     }
 }
 

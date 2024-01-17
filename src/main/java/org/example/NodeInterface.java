@@ -14,4 +14,7 @@ public interface NodeInterface extends Remote {
     void receiveReply(Request request, int nodeLogicalClock, Address nodeAddress) throws RemoteException;
 
     void receiveMessage(String msg, int lock, String name) throws RemoteException;
+
+    void processExit(Request request, int logicalClock) throws RemoteException;
+
 }

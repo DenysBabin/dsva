@@ -15,10 +15,10 @@ public class NodeReceiver implements NodeInterface {
     @Override
     public void receiveRequest(Address myAddress, Request request, int nodeLogicalClock) throws RemoteException {
         try {
-            Thread.sleep(5000);
+            Thread.sleep(1);
         } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt(); // Восстановление прерванного статуса
-            return; // Опционально: Выход из метода, если поток был прерван
+            Thread.currentThread().interrupt();
+            return;
         }
 
         myNode.setLogicalClock(Math.max(myNode.getLogicalClock(), nodeLogicalClock) + 1);
@@ -62,9 +62,9 @@ public class NodeReceiver implements NodeInterface {
         System.out.println("<===================== RECEIVE REPLY ===================> Time: " + myNode.getLogicalClock());
         System.out.println("receiveReply start for request " + request);
         List<Address> pendingReplies = myNode.pendingRepliesMap.get(request.getCreatedLamportClock());
-        System.out.println("-----------------1  getCreatedLamportClock" + request.getCreatedLamportClock());
+        System.out.println("getCreatedLamportClock" + request.getCreatedLamportClock());
 
-        System.out.println("-----------------1 PENDING REPLIES: " + pendingReplies);
+        System.out.println("PENDING REPLIES: " + pendingReplies);
         pendingReplies.removeIf(address -> Objects.equals(nodeAddress.getPort(), address.getPort())
                 && Objects.equals(nodeAddress.getIp(), address.getIp())
                 && request.getCreatedLamportClock() <= Math.max(request.getCreatedLamportClock(), nodeLogicalClock));
@@ -85,16 +85,17 @@ public class NodeReceiver implements NodeInterface {
             if (!myNode.getRequestQueue().isEmpty()) {
                 myNode.doRequest(newRequest);
             }
-        } else if (!pendingReplies.isEmpty()) {
-//            myNode.getPendingReplies().remove(0);
         }
-
     }
 
     @Override
     public void receiveMessage(String msg, int lock, String name) throws RemoteException {
         System.out.println("User: " + name + " sent Message: " + msg + " Time: " + lock);
         myNode.getRequestQueue().poll();
-        System.out.println("======= Queue: " + myNode.getRequestQueue());
+    }
+
+    @Override
+    public void processExit(Request request, int logicalClock) {
+        myNode.handleExitNotification(request, logicalClock);
     }
 }

@@ -1,6 +1,7 @@
 package org.example;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Address implements Comparable<Address>, Serializable {
     public String ip;
@@ -59,5 +60,19 @@ public class Address implements Comparable<Address>, Serializable {
 
     public void setPort(Integer port) {
         this.port = port;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Address address = (Address) o;
+        return Objects.equals(ip, address.ip) &&
+                Objects.equals(port, address.port);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ip, port);
     }
 }
