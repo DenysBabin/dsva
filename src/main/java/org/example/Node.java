@@ -314,7 +314,7 @@ public class Node implements Runnable {
             Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
             while (addresses.hasMoreElements()) {
                 InetAddress address = addresses.nextElement();
-                if (address instanceof Inet4Address && address.getHostAddress().startsWith("192.168")) {
+                if (address instanceof Inet4Address && address.getHostAddress().startsWith("")) {
                     myIP = address.getHostAddress();
                     break;
                 }
