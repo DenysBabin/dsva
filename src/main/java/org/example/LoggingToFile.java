@@ -9,7 +9,9 @@ public class LoggingToFile {
 
     public static void setupLogger() {
         try {
-            FileHandler fileHandler = new FileHandler("src/main/java/org/example/all_logs.txt", false);
+//            FileHandler fileHandler = new FileHandler("src/main/java/org/example/all_logs.txt", false);
+            FileHandler fileHandler = new FileHandler("org/example/all_logs.txt", false);
+
 
             SimpleFormatter formatter = new SimpleFormatter();
             fileHandler.setFormatter(formatter);

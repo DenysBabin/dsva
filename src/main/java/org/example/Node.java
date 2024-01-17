@@ -46,7 +46,7 @@ public class Node implements Runnable {
         setupLogger();
 
         try {
-            LogManager.getLogManager().readConfiguration(new FileInputStream("src/main/java/org/example/logging.properties"));
+//            LogManager.getLogManager().readConfiguration(new FileInputStream("src/main/java/org/example/logging.properties"));
 
         } catch (Exception e) {
             LOGGERFILE.info("ERROR: " + e);
