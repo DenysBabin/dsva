@@ -44,10 +44,12 @@ public class NodeReceiver implements NodeInterface {
             LOGGERFILE.info("It's my IP, comething went grond, but it'snot critical thing");
         } else {
             LOGGERFILE.info("Some user join chat!");
+            System.out.println("Some user join chat!");
+
             List<Address> tempKnownAddresses = myNode.getKnownAddresses();
             tempKnownAddresses.add(addr);
             myNode.setKnownAddresses(tempKnownAddresses);
-
+            System.out.println("Adding new user was successfully completed!");
             LOGGERFILE.info("Adding new user was successfully completed!");
         }
     }

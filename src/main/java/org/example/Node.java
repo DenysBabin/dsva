@@ -187,8 +187,10 @@ public class Node implements Runnable {
 
     public void doRequest(Request firsRequest) throws RemoteException {
 //        System.out.println("this.getRequestQueue() : " + this.getRequestQueue());
+        Address currentAddress = null;
         try {
             int checkPand = 0;
+
 
             if (!firsRequest.isStatus() && knownAddresses.isEmpty()) {
                 System.out.println("You send message " + this.input);
@@ -199,6 +201,7 @@ public class Node implements Runnable {
 
             for (Address nodeAddress : tempKnownAddresses) {
                 if (!nodeAddress.equals(myAddress)) {
+                    currentAddress = nodeAddress;
 
                         NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
 
@@ -234,7 +237,9 @@ public class Node implements Runnable {
                 }
             }
         } catch (RemoteException e) {
-            removeUnavailableNode(firsRequest.getAddress());
+            System.out.println("===== 4Error address: " + currentAddress);
+
+            removeUnavailableNode(currentAddress);
         }
 
         if (firsRequest.getType().equals("REPLY") && !firsRequest.isStatus() ) {
@@ -279,6 +284,8 @@ public class Node implements Runnable {
                 NodeInterface tmpNode = communicationHub.getRMIProxy(nodeAddress);
                 tmpNode.proccessJoin(myAddress);
             } catch (RemoteException e) {
+                System.out.println("===== 3Error address: " + nodeAddress);
+
                 removeUnavailableNode(nodeAddress);
 
 //                throw new RuntimeException(e);
@@ -370,6 +377,8 @@ public class Node implements Runnable {
             node.receiveReply(request, this.getLogicalClock(), myAddress);
 
         } catch (RemoteException e) {
+            System.out.println("=====2 Error address: " + request.getAddress());
+
             removeUnavailableNode(request.getAddress());
             LOGGERFILE.info("Error sending reply to " + request.getAddress() + ": " + e.getMessage());
         }
@@ -385,6 +394,7 @@ public class Node implements Runnable {
                 NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
                 node.receiveMessage(this.input, this.getLogicalClock(), this.name);
             } catch (RemoteException e) {
+                System.out.println("===== Error address: " + nodeAddress);
                 removeUnavailableNode(nodeAddress);
 
             }
