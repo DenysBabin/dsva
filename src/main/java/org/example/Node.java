@@ -39,9 +39,6 @@ public class Node implements Runnable {
 
 
     private List<Address> knownAddresses = new ArrayList<>();
-
-    private static final Logger logger = Logger.getLogger(Node.class.getName());
-
 //    private MessageInterface messageReceiver;
 //    private NodeInterface nodeReceiver;
 
@@ -314,7 +311,7 @@ public class Node implements Runnable {
             Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
             while (addresses.hasMoreElements()) {
                 InetAddress address = addresses.nextElement();
-                if (address instanceof Inet4Address && address.getHostAddress().startsWith("")) {
+                if (address instanceof Inet4Address && address.getHostAddress().startsWith("192.168")) {
                     myIP = address.getHostAddress();
                     break;
                 }

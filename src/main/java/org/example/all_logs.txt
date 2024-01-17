@@ -1,26 +1,40 @@
-янв. 17, 2024 8:05:50 PM org.example.Node startReceivers
+янв. 17, 2024 8:23:03 PM org.example.Node startReceivers
 INFO: Message listener is started ...
-янв. 17, 2024 8:05:52 PM org.example.NodeReceiver proccessJoin
+янв. 17, 2024 8:23:06 PM org.example.NodeReceiver proccessJoin
 INFO: JOIN request was called from IP Addr[host:'192.168.0.80', port:'2056']
-янв. 17, 2024 8:05:52 PM org.example.NodeReceiver proccessJoin
+янв. 17, 2024 8:23:06 PM org.example.NodeReceiver proccessJoin
 INFO: Some user join chat!
-янв. 17, 2024 8:05:52 PM org.example.NodeReceiver proccessJoin
+янв. 17, 2024 8:23:06 PM org.example.NodeReceiver proccessJoin
 INFO: Adding new user was successfully completed!
-янв. 17, 2024 8:06:01 PM org.example.NodeReceiver proccessJoin
-INFO: JOIN request was called from IP Addr[host:'192.168.0.80', port:'2080']
-янв. 17, 2024 8:06:01 PM org.example.NodeReceiver proccessJoin
-INFO: Some user join chat!
-янв. 17, 2024 8:06:01 PM org.example.NodeReceiver proccessJoin
-INFO: Adding new user was successfully completed!
-янв. 17, 2024 8:06:15 PM org.example.NodeReceiver receiveRequest
-INFO: < ================= Обработка Запроса ==============> Time: 6
-янв. 17, 2024 8:06:15 PM org.example.NodeReceiver receiveRequest
-INFO: myNode: Addr[host:'192.168.0.80', port:'1999'] has requestQueue: [org.example.Request@1521861a]
-янв. 17, 2024 8:06:15 PM org.example.Node doRequest
-INFO: < ============= Request with Type REPLY started ============= > Time: 7
-янв. 17, 2024 8:06:15 PM org.example.Node sendReply
-INFO: <==================== SENDING REPLY ====================> Time: 7
-янв. 17, 2024 8:06:15 PM org.example.Node sendReply
-INFO: User: user_1 is sending a reply to Addr[host:'192.168.0.80', port:'2080']
-янв. 17, 2024 8:06:15 PM org.example.NodeReceiver receiveMessage
-INFO: User: user_3 sent Message: sdfsd Time: 9
+янв. 17, 2024 8:23:13 PM org.example.NodeReceiver receiveRequest
+INFO: < ================= Обработка Запроса ==============> Time: 2
+янв. 17, 2024 8:23:13 PM org.example.NodeReceiver receiveRequest
+INFO: myNode: Addr[host:'192.168.0.80', port:'1999'] has requestQueue: [org.example.Request@5dcd1cb4]
+янв. 17, 2024 8:23:13 PM org.example.Node doRequest
+INFO: < ============= Request with Type REPLY started ============= > Time: 3
+янв. 17, 2024 8:23:13 PM org.example.Node sendReply
+INFO: <==================== SENDING REPLY ====================> Time: 3
+янв. 17, 2024 8:23:13 PM org.example.Node sendReply
+INFO: User: user_1 is sending a reply to Addr[host:'192.168.0.80', port:'2056']
+янв. 17, 2024 8:23:13 PM org.example.NodeReceiver receiveMessage
+INFO: User: user_2 sent Message: sdf Time: 5
+янв. 17, 2024 8:23:42 PM org.example.Node sendCriticalSectionRequest
+INFO: ======= Start msg =====
+янв. 17, 2024 8:23:42 PM org.example.Node doRequest
+INFO: ===pendingRepliesMap: {3=[Addr[host:'192.168.0.80', port:'2056']]}
+янв. 17, 2024 8:23:42 PM org.example.Node doRequest
+INFO: < ============= Request with Type REQUEST started ============= > Time: 4
+янв. 17, 2024 8:23:42 PM org.example.NodeReceiver receiveReply
+INFO: <===================== RECEIVE REPLY ===================> Time: 8
+янв. 17, 2024 8:23:42 PM org.example.NodeReceiver receiveReply
+INFO: receiveReply start for request org.example.Request@80615c4
+янв. 17, 2024 8:23:42 PM org.example.NodeReceiver receiveReply
+INFO: getCreatedLamportClock3
+янв. 17, 2024 8:23:42 PM org.example.NodeReceiver receiveReply
+INFO: PENDING REPLIES: [Addr[host:'192.168.0.80', port:'2056']]
+янв. 17, 2024 8:23:42 PM org.example.NodeReceiver receiveReply
+INFO: REQUESTS QUEUE: [org.example.Request@67f89fa3]
+янв. 17, 2024 8:23:42 PM org.example.Node doRequest
+INFO: < ============= Request with Type RELEASE started ============= > Time: 9
+янв. 17, 2024 8:23:42 PM org.example.Node sendMessage
+INFO: User: user_1 is send a MESSAGE to user in Address: Addr[host:'192.168.0.80', port:'2056']
