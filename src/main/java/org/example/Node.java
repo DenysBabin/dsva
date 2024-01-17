@@ -215,6 +215,7 @@ public class Node implements Runnable {
                             this.setLogicalClock(this.getLogicalClock() + 1);
                             checkPand++;
                             LOGGERFILE.info("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
+                            System.out.println("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
 
                             tmpNode.receiveRequest(myAddress, firsRequest, this.getLogicalClock());
 
@@ -238,6 +239,7 @@ public class Node implements Runnable {
 
         if (firsRequest.getType().equals("REPLY") && !firsRequest.isStatus() ) {
             this.setLogicalClock(this.getLogicalClock() + 1);
+            System.out.println("< ============= Request with Type REPLY started ============= > Time: " + this.getLogicalClock());
             LOGGERFILE.info("< ============= Request with Type REPLY started ============= > Time: " + this.getLogicalClock());
 
             firsRequest.setReceiveLamportClock(this.getLogicalClock());
@@ -245,6 +247,7 @@ public class Node implements Runnable {
             this.sendReply(firsRequest);
         } else if (firsRequest.getType().equals("RELEASE") && !firsRequest.isStatus()) {
             this.setLogicalClock(this.getLogicalClock() + 1);
+            System.out.println("< ============= Request with Type RELEASE started ============= > Time: " + this.getLogicalClock());
             LOGGERFILE.info("< ============= Request with Type RELEASE started ============= > Time: " + this.getLogicalClock());
 
             this.sendMessage();
@@ -311,8 +314,10 @@ public class Node implements Runnable {
             Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
             while (addresses.hasMoreElements()) {
                 InetAddress address = addresses.nextElement();
-                if (address instanceof Inet4Address && address.getHostAddress().startsWith("192.168")) {
-                    myIP = address.getHostAddress();
+                if (address instanceof Inet4Address && address.getHostAddress().startsWith("")) {
+//                    if (address instanceof Inet4Address && address.getHostAddress().startsWith("192.168")) {
+
+                        myIP = address.getHostAddress();
                     break;
                 }
             }
@@ -375,6 +380,9 @@ public class Node implements Runnable {
         for (Address nodeAddress : knownAddresses) {
             if (!nodeAddress.equals(myAddress)) {
                 LOGGERFILE.info("User: " + name + " is send a MESSAGE to user in Address: " + nodeAddress);
+                System.out.println("User: " + this.name + " sent Message: " + this.input + " Time: " + this.getLogicalClock());
+                LOGGERFILE.info("User: " + this.name + " sent Message: " + this.input + " Time: " + this.getLogicalClock());
+
                 try {
                     NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
                     node.receiveMessage(this.input, this.getLogicalClock(), this.name);

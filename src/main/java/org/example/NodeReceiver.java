@@ -24,6 +24,7 @@ public class NodeReceiver implements NodeInterface {
         }
 
         myNode.setLogicalClock(Math.max(myNode.getLogicalClock(), nodeLogicalClock) + 1);
+        System.out.println("< ================= Обработка Запроса ==============> Time: " + myNode.getLogicalClock());
         LOGGERFILE.info("< ================= Обработка Запроса ==============> Time: " + myNode.getLogicalClock());
 
         PriorityQueue<Request> requestQueue = myNode.getRequestQueue();
@@ -60,7 +61,7 @@ public class NodeReceiver implements NodeInterface {
     public void receiveReply(Request request, int nodeLogicalClock, Address nodeAddress) throws RemoteException {
 
         myNode.setLogicalClock(Math.max(myNode.getLogicalClock(), nodeLogicalClock) + 1);
-
+        System.out.println("<===================== RECEIVE REPLY ===================> Time: " + myNode.getLogicalClock());
         LOGGERFILE.info("<===================== RECEIVE REPLY ===================> Time: " + myNode.getLogicalClock());
         LOGGERFILE.info("receiveReply start for request " + request);
         List<Address> pendingReplies = myNode.pendingRepliesMap.get(request.getCreatedLamportClock());
