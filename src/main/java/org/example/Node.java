@@ -314,8 +314,8 @@ public class Node implements Runnable {
             Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
             while (addresses.hasMoreElements()) {
                 InetAddress address = addresses.nextElement();
-                if (address instanceof Inet4Address && address.getHostAddress().startsWith("")) {
-//                    if (address instanceof Inet4Address && address.getHostAddress().startsWith("192.168")) {
+//                if (address instanceof Inet4Address && address.getHostAddress().startsWith("")) {
+                    if (address instanceof Inet4Address && address.getHostAddress().startsWith("192.168")) {
 
                         myIP = address.getHostAddress();
                     break;
@@ -378,20 +378,19 @@ public class Node implements Runnable {
     public void sendMessage() throws RemoteException {
 
         for (Address nodeAddress : knownAddresses) {
-            if (!nodeAddress.equals(myAddress)) {
-                LOGGERFILE.info("User: " + name + " is send a MESSAGE to user in Address: " + nodeAddress);
-                System.out.println("User: " + this.name + " sent Message: " + this.input + " Time: " + this.getLogicalClock());
-                LOGGERFILE.info("User: " + this.name + " sent Message: " + this.input + " Time: " + this.getLogicalClock());
+            LOGGERFILE.info("User: " + name + " is send a MESSAGE to user in Address: " + nodeAddress);
 
-                try {
-                    NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
-                    node.receiveMessage(this.input, this.getLogicalClock(), this.name);
-                } catch (RemoteException e) {
-                    removeUnavailableNode(nodeAddress);
 
-                }
+            try {
+                NodeInterface node = communicationHub.getRMIProxy(nodeAddress);
+                node.receiveMessage(this.input, this.getLogicalClock(), this.name);
+            } catch (RemoteException e) {
+                removeUnavailableNode(nodeAddress);
+
             }
         }
+        System.out.println("User: " + this.name + " sent Message: " + this.input + " Time: " + this.getLogicalClock());
+        LOGGERFILE.info("User: " + this.name + " sent Message: " + this.input + " Time: " + this.getLogicalClock());
 
     }
 
