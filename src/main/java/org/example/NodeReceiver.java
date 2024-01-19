@@ -17,7 +17,7 @@ public class NodeReceiver implements NodeInterface {
     @Override
     public void receiveRequest(Address myAddress, Request request, int nodeLogicalClock) throws RemoteException {
         try {
-            Thread.sleep(5);
+            Thread.sleep(3000);
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
             return;
