@@ -9,7 +9,13 @@
         <module name="babinden_dsva_rmi" />
         <module name="babinden_dsva_rmi-1 2" />
         <module name="babinden_dsva_rmi-1" />
+        <module name="dsva" />
       </profile>
     </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="dsva" options="-parameters" />
+    </option>
   </component>
 </project>
