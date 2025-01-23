@@ -1,16 +1,20 @@
 package org.example;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api/node")
 public class TestController {
 
-    @GetMapping("/ping")
-    public String ping() {
-        System.out.println("Test endpoint /api/test/ping reached"); // Лог в консоль
-        return "Pong! Your API is working.";
+    @GetMapping("/test")
+    public String test() {
+        System.out.println("Test endpoint reached"); // Лог в консоль
+        return "Server is running!";
+    }
+
+    @PostMapping("/send-message")
+    public String sendMessage(@RequestParam String message) {
+        System.out.println("Received message: " + message); // Логируем запрос
+        return "Connection successful! Received message: " + message;
     }
 }
