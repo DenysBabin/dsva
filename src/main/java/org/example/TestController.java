@@ -58,10 +58,17 @@ public class TestController {
 //    }
 
     @PostMapping("/join")
-    public String startNode(@RequestParam int port, int myPort) {
+    public String startNode(@RequestParam int port, @RequestParam int myPort, @RequestParam String ip, @RequestParam Boolean firstUser, @RequestParam String name) {
         try {
+            String[] args;
+            if (firstUser) {
+                // Если это первый пользователь, не требуется IP и порт другого узла
+                args = new String[]{"-myPort", String.valueOf(myPort), "-n", name};
+            } else {
+                // Если это не первый пользователь, подключаемся к указанному узлу
+                args = new String[]{"-ip", ip, "-p", String.valueOf(port), "-myPort", String.valueOf(myPort), "-n", name};
+            }
             // Используем переданный порт для создания нового узла
-            String[] args = {"-ip", "192.168.0.157", "-p", String.valueOf(port), "-myPort", String.valueOf(myPort), "-n", "MyNode"};
             Node node = new Node(args, "MyNode");
             this.node = node;
 

@@ -73,7 +73,7 @@ public class Node implements Runnable {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-ip") && i + 1 < args.length) {
                 otherNodeIP = args[++i];
-            } else if (args[i].equals("-p") && !args[i+1].equals("1999") && i + 1 < args.length) {
+            } else if (args[i].equals("-p") && i + 1 < args.length) {
                 try {
                     otherNodePort = Integer.parseInt(args[++i]);
                 } catch (NumberFormatException e) {
