@@ -12,6 +12,35 @@ V této práci jsem implementoval chatovací systém. Při práci jsem použil n
 - JavaRMI
 
 
+## REST API
+REST API implementuje základní funkce potřebné k provozu distribuovaného chatovacího systému. Níže je uveden podrobný popis jednotlivých dostupných endpointů:
+1. Test API
+   •	Endpoint: GET /api/node/test 
+2. Poslání zprávy
+      •	Endpoint: POST /api/node/send-message
+      •	Parametr:
+      •	message (String) – Text zprávy, který má být odeslán.
+      •	Popis:
+      Umožňuje poslat zprávu do distribuovaného systému. Zpráva bude zpracována a následně doručena všem ostatním uživatelům připojeným v síti.
+3. Připojení uzlu
+   •	Endpoint: POST /api/node/join
+   •	Parametry:
+   •	port (int) – Port jiného uzlu, ke kterému se připojuje.
+   •	myPort (int) – Port aktuálního uzlu.
+   •	ip (String) – IP adresa jiného uzlu, ke kterému se připojuje.
+   •	firstUser (Boolean) – Indikuje, zda jde o prvního uživatele v síti.
+   •	name (String) – Jméno aktuálního uzlu.
+   •	Popis:
+   Připojuje nový uzel do distribuovaného systému. Pokud je firstUser nastaveno na true, vytvoří se první uzel bez nutnosti připojení k jinému uzlu. V opačném případě se nový uzel připojí k existujícímu uzlu.
+4. Odpojení uzlu
+   •	Endpoint: POST /api/node/leave
+   •	Popis:
+   Tento endpoint odpojí aktuální uzel ze systému. Informace o odpojení budou předány ostatním uzlům v síti.
+5. Ukončení uzlu
+   •	Endpoint: POST /api/node/kill
+   •	Popis:
+   Tento endpoint ukončí běh aktuálního uzlu bez další komunikace s ostatními uzly.
+
 ## Loggs
 Hlavní protokolování probíhá v souboru all_logs.txt. Dále jsou výstupy také v konzoli. Do konzole se zobrazují pouze změny logických hodin a zprávy od uživatelů. Hlavním souborem pro protokolování je LoggingToFile.java, který obsahuje odkaz na soubor all_logs.txt. Existují dvě nastavení cesty k souboru, v závislosti na lokálním testování nebo testování na vzdáleném serveru:
 
