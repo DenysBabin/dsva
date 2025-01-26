@@ -67,13 +67,26 @@ public class NodeReceiver implements NodeInterface {
         LOGGERFILE.info("<===================== RECEIVE REPLY ===================> Time: " + myNode.getLogicalClock());
         LOGGERFILE.info("receiveReply start for request " + request);
         List<Address> pendingReplies = myNode.pendingRepliesMap.get(request.getCreatedLamportClock());
-        LOGGERFILE.info("getCreatedLamportClock" + request.getCreatedLamportClock());
+        LOGGERFILE.info("getCreatedLamportClock: " + request.getCreatedLamportClock());
 
-        LOGGERFILE.info("PENDING REPLIES: " + pendingReplies);
+        LOGGERFILE.info("PENDING REPLIES_1: " + pendingReplies);
+        LOGGERFILE.info("PENDING nodeAddress.getPort(): " + nodeAddress.getPort());
+        LOGGERFILE.info("PENDING address: ");
+
+        pendingReplies.forEach(address -> LOGGERFILE.info("PENDING address__:__ " + address.getPort()));
+
+        LOGGERFILE.info("IP " + nodeAddress.getIp() + " === " );
+        pendingReplies.forEach(address -> LOGGERFILE.info("PENDING address__:__ " + address.getIp()));
+
+        LOGGERFILE.info("CLOCK request" + request.getCreatedLamportClock() + " === " + nodeLogicalClock);
+
+
+
+
         pendingReplies.removeIf(address -> Objects.equals(nodeAddress.getPort(), address.getPort())
                 && Objects.equals(nodeAddress.getIp(), address.getIp())
                 && request.getCreatedLamportClock() <= Math.max(request.getCreatedLamportClock(), nodeLogicalClock));
-
+        LOGGERFILE.info("PENDING REPLIES_2: " + pendingReplies);
 
         LOGGERFILE.info("REQUESTS QUEUE: " + myNode.getRequestQueue());
 

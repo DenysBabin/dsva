@@ -1,0 +1,65 @@
+янв. 26, 2025 7:07:41 AM org.example.Node startReceivers
+INFO: Message listener is started ...
+янв. 26, 2025 7:07:46 AM org.example.NodeReceiver proccessJoin
+INFO: JOIN request was called from IP Addr[host:'192.168.0.157', port:'2056']
+янв. 26, 2025 7:07:46 AM org.example.NodeReceiver proccessJoin
+INFO: Some user join chat!
+янв. 26, 2025 7:07:46 AM org.example.NodeReceiver proccessJoin
+INFO: Adding new user was successfully completed!
+янв. 26, 2025 7:07:52 AM org.example.Node sendCriticalSectionRequest
+INFO: ======= Start msg =====
+янв. 26, 2025 7:07:52 AM org.example.Node doRequest
+INFO: ===pendingRepliesMap: {0=[Addr[host:'192.168.0.157', port:'2056']]}
+янв. 26, 2025 7:07:52 AM org.example.Node doRequest
+INFO: < ============= Request with Type REQUEST started ============= > Time: 1
+янв. 26, 2025 7:59:58 AM org.example.NodeReceiver receiveRequest
+INFO: < ================= Обработка Запроса ==============> Time: 2
+янв. 26, 2025 7:59:58 AM org.example.NodeReceiver receiveRequest
+INFO: myNode: Addr[host:'192.168.0.157', port:'1999'] has requestQueue: [org.example.Request@64b8f8f4, org.example.Request@11d6ab31]
+янв. 26, 2025 7:59:58 AM org.example.Node doRequest
+INFO: < ============= Request with Type REPLY started ============= > Time: 3
+янв. 26, 2025 7:59:58 AM org.example.Node sendReply
+INFO: <==================== SENDING REPLY ====================> Time: 3
+янв. 26, 2025 7:59:58 AM org.example.Node sendReply
+INFO: User: Denys is sending a reply to Addr[host:'192.168.0.157', port:'8082']
+янв. 26, 2025 7:59:58 AM org.example.Node removeUnavailableNode
+INFO: Error while notifying exit: no such object in table
+янв. 26, 2025 7:59:58 AM org.example.Node removeUnavailableNode
+INFO: Node at Addr[host:'192.168.0.157', port:'8082'] is unavailable and removed from known addresses.
+янв. 26, 2025 7:59:58 AM org.example.Node sendReply
+INFO: Error sending reply to Addr[host:'192.168.0.157', port:'8082']: Connection refused to host: 192.168.0.157; nested exception is: 
+	java.net.ConnectException: Connection refused
+янв. 26, 2025 8:00:10 AM org.example.NodeReceiver receiveRequest
+INFO: < ================= Обработка Запроса ==============> Time: 4
+янв. 26, 2025 8:00:10 AM org.example.NodeReceiver receiveRequest
+INFO: myNode: Addr[host:'192.168.0.157', port:'1999'] has requestQueue: [org.example.Request@64b8f8f4, org.example.Request@11d6ab31, org.example.Request@576d6e3]
+янв. 26, 2025 8:00:10 AM org.example.Node doRequest
+INFO: < ============= Request with Type REPLY started ============= > Time: 5
+янв. 26, 2025 8:00:10 AM org.example.Node sendReply
+INFO: <==================== SENDING REPLY ====================> Time: 5
+янв. 26, 2025 8:00:10 AM org.example.Node sendReply
+INFO: User: Denys is sending a reply to Addr[host:'192.168.0.157', port:'8082']
+янв. 26, 2025 8:00:10 AM org.example.Node removeUnavailableNode
+INFO: Error while notifying exit: no such object in table
+янв. 26, 2025 8:00:10 AM org.example.Node removeUnavailableNode
+INFO: Node at Addr[host:'192.168.0.157', port:'8082'] is unavailable and removed from known addresses.
+янв. 26, 2025 8:00:10 AM org.example.Node sendReply
+INFO: Error sending reply to Addr[host:'192.168.0.157', port:'8082']: Connection refused to host: 192.168.0.157; nested exception is: 
+	java.net.ConnectException: Connection refused
+янв. 26, 2025 8:00:59 AM org.example.NodeReceiver receiveRequest
+INFO: < ================= Обработка Запроса ==============> Time: 6
+янв. 26, 2025 8:00:59 AM org.example.NodeReceiver receiveRequest
+INFO: myNode: Addr[host:'192.168.0.157', port:'1999'] has requestQueue: [org.example.Request@64b8f8f4, org.example.Request@11d6ab31, org.example.Request@576d6e3, org.example.Request@2d978f01]
+янв. 26, 2025 8:00:59 AM org.example.Node doRequest
+INFO: < ============= Request with Type REPLY started ============= > Time: 7
+янв. 26, 2025 8:00:59 AM org.example.Node sendReply
+INFO: <==================== SENDING REPLY ====================> Time: 7
+янв. 26, 2025 8:00:59 AM org.example.Node sendReply
+INFO: User: Denys is sending a reply to Addr[host:'192.168.0.157', port:'8082']
+янв. 26, 2025 8:00:59 AM org.example.Node removeUnavailableNode
+INFO: Error while notifying exit: no such object in table
+янв. 26, 2025 8:00:59 AM org.example.Node removeUnavailableNode
+INFO: Node at Addr[host:'192.168.0.157', port:'8082'] is unavailable and removed from known addresses.
+янв. 26, 2025 8:00:59 AM org.example.Node sendReply
+INFO: Error sending reply to Addr[host:'192.168.0.157', port:'8082']: Connection refused to host: 192.168.0.157; nested exception is: 
+	java.net.ConnectException: Connection refused

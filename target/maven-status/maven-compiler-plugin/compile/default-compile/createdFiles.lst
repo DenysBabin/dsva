@@ -1,0 +1,9 @@
+org/example/NodeReceiver.class
+org/example/Node.class
+org/example/NodeInterface.class
+org/example/Request.class
+org/example/TestController.class
+org/example/CommunicationHub.class
+org/example/Address.class
+org/example/RestApiApplication.class
+org/example/LoggingToFile.class

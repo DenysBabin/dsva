@@ -42,7 +42,7 @@ public class Node implements Runnable {
 //    private MessageInterface messageReceiver;
 //    private NodeInterface nodeReceiver;
 
-    public static void main(String[] args) {
+    public static void initializeAndRun(String[] args) {
         setupLogger();
 
         try {
@@ -61,13 +61,19 @@ public class Node implements Runnable {
     private CommunicationHub communicationHub;
 
     public Node(String[] args, String name) {
+
+        LOGGERFILE.info("Start Node from Test: " + args[0] + " " + args[1] + " " + args[2] + " " + args[3] );
+        System.out.println("Start Node: " + args[0] + " " + args[1] + " " + args[2] + " " + args[3] );
+
+
+
         this.name = name;
         this.isHaveQueue = false;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-ip") && i + 1 < args.length) {
                 otherNodeIP = args[++i];
-            } else if (args[i].equals("-p") && i + 1 < args.length) {
+            } else if (args[i].equals("-p") && !args[i+1].equals("1999") && i + 1 < args.length) {
                 try {
                     otherNodePort = Integer.parseInt(args[++i]);
                 } catch (NumberFormatException e) {
@@ -99,29 +105,39 @@ public class Node implements Runnable {
         try {
             String myIP = getMyIP();
 
-            System.out.println(myIP);
+            System.out.println("This is myIP: " + myIP);
+            System.out.println("This is myPort: " + myPort);
+
 
             myAddress = new Address(myIP, myPort);
             communicationHub = new CommunicationHub(myAddress);
 
             startReceivers();
 
+            System.out.println("This is my otherNodeIP: " + otherNodeIP);
+            System.out.println("This is my otherNodePort: " + otherNodePort);
+
+
             if (Objects.nonNull(otherNodeIP) && Objects.nonNull(otherNodePort)) {
-                try {
-                    Address address = new Address(otherNodeIP, otherNodePort);
-                    // messageReceiver
+                System.out.println("Test here ============: ");
+                if (otherNodePort != -1) {
+                    try {
+                        Address address = new Address(otherNodeIP, otherNodePort);
+                        // messageReceiver
 
-                    NodeInterface tmpNode = communicationHub.getRMIProxy(address);
-                    System.out.println(tmpNode);
-                    knownAddresses = tmpNode.getKnownAddresses();
-                    knownAddresses.add(address);
-                    join();
-                } catch (RemoteException e) {
-                    LOGGERFILE.info("ERROR: " + e);
+                        NodeInterface tmpNode = communicationHub.getRMIProxy(address);
+                        System.out.println(tmpNode);
+                        knownAddresses = tmpNode.getKnownAddresses();
+                        knownAddresses.add(address);
+                        join();
+                    } catch (RemoteException e) {
+                        LOGGERFILE.info("ERROR: " + e);
 
-                    e.printStackTrace();
-                    System.exit(1);
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                 }
+
             }
         } catch (SocketException e) {
             LOGGERFILE.info("ERROR: " + e);
@@ -141,7 +157,7 @@ public class Node implements Runnable {
                     break; // Выход из цикла и завершение программы
                 } else {
                     // Критическая ситуация
-                    sendCriticalSectionRequest();
+                    sendCriticalSectionRequest(this.input);
                     this.input = "";
                 }
 
@@ -215,10 +231,15 @@ public class Node implements Runnable {
                                 pendingRepliesMap.put(this.getLogicalClock(), pendingRepliesForRequest);
                                 LOGGERFILE.info("===pendingRepliesMap: " + pendingRepliesMap);
                             }
+
                             this.setLogicalClock(this.getLogicalClock() + 1);
                             checkPand++;
-                            LOGGERFILE.info("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
-                            System.out.println("< ============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
+                            System.out.println("< !!!============= Request with Type REQUEST started ============= > Time: " + myAddress);
+
+                            LOGGERFILE.info("< !!!============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
+                            System.out.println("< !!!============= Request with Type REQUEST started ============= > Time: " + this.getLogicalClock());
+
+                            System.out.println("myAddress is: " + myAddress);
 
                             tmpNode.receiveRequest(myAddress, firsRequest, this.getLogicalClock());
 
@@ -265,7 +286,9 @@ public class Node implements Runnable {
     }
 
 
-    private void sendCriticalSectionRequest() throws RemoteException {
+    public void sendCriticalSectionRequest(String inputMessage) throws RemoteException {
+        this.input = inputMessage;
+        System.out.println("This Node: " + this.input);
         LOGGERFILE.info("======= Start msg =====");
         Request request = new Request(getMyAddress(), "REQUEST", false, this.getLogicalClock(), this.getLogicalClock());
         requestQueue.add(request);
@@ -371,8 +394,13 @@ public class Node implements Runnable {
         LOGGERFILE.info("User: " + name + " is sending a reply to " + request.getAddress());
 
         try {
+            System.out.println("1");
             NodeInterface node = communicationHub.getRMIProxy(request.getAddress());
+            System.out.println("2");
+
             node.receiveReply(request, this.getLogicalClock(), myAddress);
+            System.out.println("3");
+
 
         } catch (RemoteException e) {
             removeUnavailableNode(request.getAddress());
