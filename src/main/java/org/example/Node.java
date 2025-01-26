@@ -167,7 +167,7 @@ public class Node implements Runnable {
         }
     }
 
-    private void handleExit() throws RemoteException {
+    public void handleExit() throws RemoteException {
         Request exitRequest = new Request(getMyAddress(), "EXIT", false, this.getLogicalClock(), this.getLogicalClock());
         for (Address address : knownAddresses) {
             if (!address.equals(myAddress)) {

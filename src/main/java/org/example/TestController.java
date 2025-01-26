@@ -75,4 +75,45 @@ public class TestController {
             return "Failed to start Node: " + e.getMessage();
         }
     }
+
+    @PostMapping("/leave")
+    public String leaveNode() {
+        try {
+            if (this.node == null) {
+                return "No node is currently active!";
+            }
+
+            System.out.println("Stopping Node: " + this.node.getMyAddress());
+            this.node.handleExit(); // Завершаем работу узла
+            this.node = null;
+
+            return "Node has successfully left the network.";
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            return "Failed to leave the network: " + e.getMessage();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "An error occurred while leaving the network: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/kill")
+    public String killNode() {
+        try {
+            if (this.node == null) {
+                return "No node is currently active!";
+            }
+
+            // Логируем завершение работы узла
+            System.out.println("Killing Node: " + this.node.getMyAddress());
+
+            // Завершаем работу узла без дополнительных операций
+            System.exit(1);
+
+            return "Node has been successfully killed.";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "An error occurred while killing the node: " + e.getMessage();
+        }
+    }
 }
